@@ -1,0 +1,10 @@
+{
+	"name": "LA_pskv",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://pskv-3.vault.azure.net/"
+		}
+	}
+}
