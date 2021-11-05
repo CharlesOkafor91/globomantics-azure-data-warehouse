@@ -5,17 +5,17 @@
 		"workspaceName": {
 			"value": "psasaw2"
 		},
-		"psasaw2-WorkspaceDefaultSqlServer_connectionString": {
-			"value": ""
-		},
 		"AzureBlobStorage1_connectionString": {
 			"value": ""
 		},
-		"psasaw2-WorkspaceDefaultStorage_properties_typeProperties_url": {
-			"value": "https://psdlsg02.dfs.core.windows.net"
+		"psasaw2-WorkspaceDefaultSqlServer_connectionString": {
+			"value": ""
 		},
 		"LA_pskv_properties_typeProperties_baseUrl": {
 			"value": "https://pskv-3.vault.azure.net/"
+		},
+		"psasaw2-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://psdlsg02.dfs.core.windows.net"
 		}
 	}
 }

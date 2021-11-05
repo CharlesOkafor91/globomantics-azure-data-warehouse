@@ -7,27 +7,88 @@
 			"metadata": "Workspace name",
 			"defaultValue": "psasaw2"
 		},
-		"psasaw2-WorkspaceDefaultSqlServer_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'psasaw2-WorkspaceDefaultSqlServer'"
-		},
 		"AzureBlobStorage1_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
 		},
-		"psasaw2-WorkspaceDefaultStorage_properties_typeProperties_url": {
-			"type": "string",
-			"defaultValue": "https://psdlsg02.dfs.core.windows.net"
+		"psasaw2-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'psasaw2-WorkspaceDefaultSqlServer'"
 		},
 		"LA_pskv_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://pskv-3.vault.azure.net/"
+		},
+		"psasaw2-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://psdlsg02.dfs.core.windows.net"
 		}
 	},
 	"variables": {
 		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureBlobStorage1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/LA_psadbw')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-7432988447461131.11.azuredatabricks.net",
+					"accessToken": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LA_pskv",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "Databricks-Azure-Synapse-Token"
+					},
+					"existingClusterId": "1029-151818-oiz4tb0"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
+				"[concat(variables('workspaceId'), '/linkedServices/LA_pskv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/LA_pskv')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('LA_pskv_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/psasaw2-WorkspaceDefaultSqlServer')]",
 			"type": "Microsoft.Synapse/workspaces/linkedServices",
@@ -131,68 +192,27 @@
 				"annotations": []
 			},
 			"dependsOn": [],
-			"location": "westus2"
+			"location": "westeurope"
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/LA_pskv')]",
-			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"name": "[concat(parameters('workspaceName'), '/SQL script 1')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
-				"annotations": [],
-				"type": "AzureKeyVault",
-				"typeProperties": {
-					"baseUrl": "[parameters('LA_pskv_properties_typeProperties_baseUrl')]"
-				}
+				"content": {
+					"query": "SELECT TOP (100) [BranchID]\n,[RmFirstName]\n,[RmLastName]\n,[LastUpdateDate]\n,[RmID]\n FROM [dbo].[relations_manager]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "GlobomanticsDWH",
+						"poolName": "GlobomanticsDWH"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
 			},
 			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/AzureBlobStorage1')]",
-			"type": "Microsoft.Synapse/workspaces/linkedServices",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
-				},
-				"connectVia": {
-					"referenceName": "AutoResolveIntegrationRuntime",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/LA_psadbw')]",
-			"type": "Microsoft.Synapse/workspaces/linkedServices",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": [],
-				"type": "AzureDatabricks",
-				"typeProperties": {
-					"domain": "https://adb-7432988447461131.11.azuredatabricks.net",
-					"accessToken": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "LA_pskv",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "Databricks-Azure-Synapse-Token"
-					},
-					"existingClusterId": "1029-151818-oiz4tb0"
-				},
-				"connectVia": {
-					"referenceName": "AutoResolveIntegrationRuntime",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
-				"[concat(variables('workspaceId'), '/linkedServices/LA_pskv')]"
-			]
 		}
 	]
 }
