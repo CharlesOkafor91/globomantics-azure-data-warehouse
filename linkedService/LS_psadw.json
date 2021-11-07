@@ -1,0 +1,23 @@
+{
+	"name": "LS_psadw",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-241694907486524.4.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_pskv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "Databricks-Azure-Synapse-Token"
+			},
+			"existingClusterId": "1105-074212-an3ohw0b"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
