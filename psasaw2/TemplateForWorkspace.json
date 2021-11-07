@@ -261,6 +261,64 @@
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/linkedServices/psasaw2-WorkspaceDefaultStorage')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 2')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "GlobomanticsDWH",
+						"poolName": "GlobomanticsDWH"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DS_ADSP_TABLES')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "SqlPoolTable",
+				"schema": [
+					{
+						"name": "customer_id",
+						"type": "varchar"
+					},
+					{
+						"name": "relationship_manager_id",
+						"type": "varchar"
+					},
+					{
+						"name": "last_updated",
+						"type": "varchar"
+					},
+					{
+						"name": "deposit_amount",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "stage",
+					"table": "customer_acquistion_data"
+				},
+				"sqlPool": {
+					"referenceName": "GlobomanticsDWH",
+					"type": "SqlPoolReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/sqlPools/GlobomanticsDWH')]"
+			]
 		}
 	]
 }
