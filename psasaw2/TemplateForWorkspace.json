@@ -446,7 +446,12 @@
 										"sink": {
 											"type": "SqlPoolSink",
 											"preCopyScript": "TRUNCATE TABLE [stage].[customer_acquisition_data]",
-											"sqlWriterUseTableLock": false
+											"allowPolyBase": true,
+											"polyBaseSettings": {
+												"rejectValue": 0,
+												"rejectType": "value",
+												"useTypeDefault": true
+											}
 										},
 										"enableStaging": true,
 										"stagingSettings": {
@@ -624,6 +629,128 @@
 				"[concat(variables('workspaceId'), '/datasets/DS_ADLK_CUSTOMER_DATA')]",
 				"[concat(variables('workspaceId'), '/linkedServices/psasaw2-WorkspaceDefaultSqlServer')]",
 				"[concat(variables('workspaceId'), '/linkedServices/LS_psbs')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/PL_DIMENSIONS_PROCESSING')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "PROCESS_DIMENSIONS",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/charles.okafor@interswitchng.com/Process Dimension Tables"
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_psadw",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/LS_psadw')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/PL_PROCESS_ANALYTICS')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "PL_CUSTOMER_ACQUISITION",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "PL_CUSTOMER_ACQUISITION",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": false,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "PL_DIMENSIONS_PROCESSING",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "PL_DIMENSIONS_PROCESSING",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": false,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/PL_CUSTOMER_ACQUISITION')]",
+				"[concat(variables('workspaceId'), '/pipelines/PL_DIMENSIONS_PROCESSING')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/TG_DAILY')]",
+			"type": "Microsoft.Synapse/workspaces/triggers",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "PL_PROCESS_ANALYTICS",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2021-11-07T20:03:00Z",
+						"endTime": "2021-11-10T20:03:00Z",
+						"timeZone": "UTC",
+						"schedule": {
+							"minutes": [
+								30
+							],
+							"hours": [
+								0
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/PL_PROCESS_ANALYTICS')]"
 			]
 		}
 	]
